@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 """
-Extract Caltex Terminal Gate Pricing from PDF into tidy CSVs.
+Extract Caltex Terminal Gate Pricing from PDF into tidy CSVs and JSON.
 
 Outputs:
   tgp-caltex-current.csv  - current effective date prices (overwritten each run)
   tgp-caltex-history.csv  - all dates ever seen (appended, no duplicates)
+  tgp_data.json           - full normalised history, regenerated each run
 """
 
 import csv
+import json
 import os
 import re
 import sys
 import tempfile
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone
 
 try:
     import pdfplumber
@@ -28,10 +30,25 @@ PDF_URL = (
 
 CURRENT_CSV = "tgp-caltex-current.csv"
 HISTORY_CSV = "tgp-caltex-history.csv"
-FIELDNAMES = ["date", "state", "location", "fuel_type", "price_cents_per_litre"]
+JSON_OUT = "tgp_data.json"
+PROVIDER = "caltex"
+
+FIELDNAMES = ["date", "state", "location", "fuel_type", "price_cpl"]
 
 # Order matches the PDF column pairs (left to right)
-FUEL_TYPES = ["E10", "ULS Diesel", "PULP 95", "ULP 91", "PULP 98", "B5"]
+FUEL_TYPES = ["e10", "diesel", "p95", "ulp91", "p98", "b5"]
+
+# Map any legacy / PDF-style fuel labels to the canonical short codes
+FUEL_ALIASES = {
+    "E10": "e10",
+    "ULS Diesel": "diesel",
+    "Diesel": "diesel",
+    "Premium Diesel": "prediesel",
+    "PULP 95": "p95",
+    "ULP 91": "ulp91",
+    "PULP 98": "p98",
+    "B5": "b5",
+}
 
 # Regex matching a data row: STATE  Location  val val val ... (12 values)
 ROW_RE = re.compile(
@@ -40,6 +57,10 @@ ROW_RE = re.compile(
     r"((?:[\d.]+|N/A)(?:\s+(?:[\d.]+|N/A)){11})$",  # exactly 12 price tokens
     re.MULTILINE,
 )
+
+
+def normalise_fuel(fuel: str) -> str:
+    return FUEL_ALIASES.get(fuel, fuel)
 
 
 def parse_ddmmyyyy(date_str: str) -> str:
@@ -63,13 +84,12 @@ def extract_text(pdf_path: str) -> str:
         return pdf.pages[0].extract_text() or ""
 
 
-def parse_pricing(text: str) -> list[dict]:
+def parse_pricing(text: str):
     """
     Parse all pricing rows from the PDF text.
-    Returns a list of dicts with: date, state, location, fuel_type, price_cents_per_litre.
+    Returns (rows, current_date). Rows are dicts matching FIELDNAMES.
     Both current and previous effective dates are included.
     """
-    # Extract dates
     current_match = re.search(r"Current Effective Date\s+\w{3}\s+(\d{2}/\d{2}/\d{4})", text)
     previous_match = re.search(r"Previous Effective Date\s+\w{3}\s+(\d{2}/\d{2}/\d{4})", text)
 
@@ -95,7 +115,7 @@ def parse_pricing(text: str) -> list[dict]:
                     "state": state,
                     "location": location,
                     "fuel_type": fuel,
-                    "price_cents_per_litre": float(curr_val),
+                    "price_cpl": round(float(curr_val), 1),
                 })
 
             if prev_val != "N/A" and previous_date:
@@ -104,7 +124,7 @@ def parse_pricing(text: str) -> list[dict]:
                     "state": state,
                     "location": location,
                     "fuel_type": fuel,
-                    "price_cents_per_litre": float(prev_val),
+                    "price_cpl": round(float(prev_val), 1),
                 })
 
     return rows, current_date
@@ -130,10 +150,9 @@ def write_history(rows: list[dict]) -> None:
 
     new_rows = [r for r in rows if r["date"] not in existing_dates]
     if not new_rows:
-        print(f"History up to date — no new dates to append.", file=sys.stderr)
+        print("History up to date — no new dates to append.", file=sys.stderr)
         return
 
-    # Sort new rows so history stays ordered by date
     new_rows.sort(key=lambda r: (r["date"], r["state"], r["location"], r["fuel_type"]))
 
     needs_header = not os.path.exists(HISTORY_CSV)
@@ -150,6 +169,34 @@ def write_history(rows: list[dict]) -> None:
     )
 
 
+def write_json() -> None:
+    """Read the full history CSV, normalise, and write tgp_data.json from scratch."""
+    records = []
+    if os.path.exists(HISTORY_CSV):
+        with open(HISTORY_CSV, newline="") as f:
+            for row in csv.DictReader(f):
+                fuel = normalise_fuel(row["fuel_type"])
+                try:
+                    price = round(float(row["price_cpl"]), 1)
+                except (KeyError, ValueError):
+                    continue
+                records.append([row["date"], row["state"], row["location"], fuel, price])
+
+    records.sort(key=lambda r: (r[0], r[1], r[2], r[3]))
+
+    payload = {
+        "provider": PROVIDER,
+        "updated": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "fields": FIELDNAMES,
+        "records": records,
+    }
+
+    with open(JSON_OUT, "w") as f:
+        json.dump(payload, f, separators=(",", ":"))
+        f.write("\n")
+    print(f"Wrote {len(records)} records to {JSON_OUT}", file=sys.stderr)
+
+
 def main() -> None:
     pdf_path = download_pdf(PDF_URL)
     try:
@@ -158,6 +205,7 @@ def main() -> None:
         print(f"Parsed {len(rows)} price records (current date: {current_date})", file=sys.stderr)
         write_current(rows, current_date)
         write_history(rows)
+        write_json()
     finally:
         os.unlink(pdf_path)
 
