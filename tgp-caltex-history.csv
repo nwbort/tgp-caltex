@@ -2792,3 +2792,60 @@ date,state,location,fuel_type,price_cpl
 2026-06-16,WA,Perth,p98,199.4
 2026-06-16,WA,Perth,ulp91,165.3
 2026-06-16,WA,Port Hedland,diesel,192.3
+2026-06-17,NSW,Newcastle,diesel,180.8
+2026-06-17,NSW,Newcastle,e10,165.4
+2026-06-17,NSW,Newcastle,p95,181.2
+2026-06-17,NSW,Newcastle,p98,188.8
+2026-06-17,NSW,Newcastle,ulp91,163.1
+2026-06-17,NSW,Stolthaven,diesel,180.2
+2026-06-17,NSW,Sydney,diesel,183.8
+2026-06-17,NSW,Sydney,e10,167.2
+2026-06-17,NSW,Sydney,p95,177.8
+2026-06-17,NSW,Sydney,p98,193.4
+2026-06-17,NSW,Sydney,ulp91,164.9
+2026-06-17,NT,Darwin,diesel,181.1
+2026-06-17,NT,Darwin,p95,177.7
+2026-06-17,NT,Darwin,ulp91,166.8
+2026-06-17,QLD,Brisbane,b5,191.7
+2026-06-17,QLD,Brisbane,diesel,183.6
+2026-06-17,QLD,Brisbane,e10,165.3
+2026-06-17,QLD,Brisbane,p95,180.0
+2026-06-17,QLD,Brisbane,p98,189.7
+2026-06-17,QLD,Brisbane,ulp91,162.9
+2026-06-17,QLD,Cairns,diesel,185.5
+2026-06-17,QLD,Cairns,p95,184.0
+2026-06-17,QLD,Cairns,ulp91,169.7
+2026-06-17,QLD,Gladstone,diesel,184.8
+2026-06-17,QLD,Gladstone,p95,182.1
+2026-06-17,QLD,Gladstone,ulp91,165.7
+2026-06-17,QLD,Mackay,diesel,185.6
+2026-06-17,QLD,Mackay,p95,180.8
+2026-06-17,QLD,Mackay,p98,191.8
+2026-06-17,QLD,Mackay,ulp91,167.1
+2026-06-17,QLD,Townsville,diesel,185.1
+2026-06-17,QLD,Townsville,e10,169.5
+2026-06-17,QLD,Townsville,p95,177.4
+2026-06-17,QLD,Townsville,p98,197.1
+2026-06-17,QLD,Townsville,ulp91,165.6
+2026-06-17,SA,Adelaide,diesel,184.8
+2026-06-17,SA,Adelaide,p95,174.9
+2026-06-17,SA,Adelaide,p98,184.9
+2026-06-17,SA,Adelaide,ulp91,165.6
+2026-06-17,TAS,Bell Bay,diesel,190.9
+2026-06-17,TAS,Bell Bay,p98,190.6
+2026-06-17,TAS,Bell Bay,ulp91,170.8
+2026-06-17,VIC,Hastings,diesel,186.3
+2026-06-17,VIC,Hastings,e10,166.3
+2026-06-17,VIC,Hastings,p95,177.7
+2026-06-17,VIC,Hastings,p98,188.3
+2026-06-17,VIC,Hastings,ulp91,165.6
+2026-06-17,VIC,Melbourne,diesel,184.9
+2026-06-17,VIC,Melbourne,e10,169.0
+2026-06-17,VIC,Melbourne,p95,175.9
+2026-06-17,VIC,Melbourne,p98,188.1
+2026-06-17,VIC,Melbourne,ulp91,164.3
+2026-06-17,WA,Perth,diesel,181.5
+2026-06-17,WA,Perth,p95,178.0
+2026-06-17,WA,Perth,p98,196.3
+2026-06-17,WA,Perth,ulp91,162.2
+2026-06-17,WA,Port Hedland,diesel,187.0
