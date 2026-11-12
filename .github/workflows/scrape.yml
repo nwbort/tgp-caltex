@@ -44,14 +44,16 @@ jobs:
     - name: Run the scraper
       run: |
         ./scrape.sh
-    - name: Upload failing PDF
+    - name: Commit failing PDF
       if: failure()
-      uses: actions/upload-artifact@v6
-      with:
-        name: failed-pdf-${{ github.run_id }}
-        path: failed-pdf/
-        if-no-files-found: ignore
-        retention-days: 30
+      run: |-
+        [ -d failed-pdf ] || exit 0
+        git config user.name "Automated"
+        git config user.email "actions@users.noreply.github.com"
+        git add failed-pdf/
+        git commit -m "Parse failed: $(date -u)" || exit 0
+        git pull --rebase --autostash
+        git push
     - name: Commit and push
       run: |-
         git config user.name "Automated"

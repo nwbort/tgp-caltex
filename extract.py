@@ -202,7 +202,7 @@ def write_json() -> None:
 def save_failed_pdf(pdf_path: str, text: str | None) -> None:
     """Keep the downloaded PDF (and any extracted text) for diagnosing parse failures."""
     os.makedirs(FAILED_DIR, exist_ok=True)
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H%M%SZ")
     dest = os.path.join(FAILED_DIR, f"caltex-tgp-{stamp}.pdf")
     shutil.copyfile(pdf_path, dest)
     if text is not None:
