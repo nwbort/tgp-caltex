@@ -12,6 +12,7 @@ import csv
 import json
 import os
 import re
+import shutil
 import sys
 import tempfile
 import urllib.request
@@ -31,6 +32,7 @@ PDF_URL = (
 CURRENT_CSV = "tgp-caltex-current.csv"
 HISTORY_CSV = "tgp-caltex-history.csv"
 JSON_OUT = "tgp_data.json"
+FAILED_DIR = "failed-pdf"  # raw PDF + extracted text kept here when parsing fails
 PROVIDER = "caltex"
 
 FIELDNAMES = ["date", "state", "location", "fuel_type", "price_cpl"]
@@ -197,8 +199,21 @@ def write_json() -> None:
     print(f"Wrote {len(records)} records to {JSON_OUT}", file=sys.stderr)
 
 
+def save_failed_pdf(pdf_path: str, text: str | None) -> None:
+    """Keep the downloaded PDF (and any extracted text) for diagnosing parse failures."""
+    os.makedirs(FAILED_DIR, exist_ok=True)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    dest = os.path.join(FAILED_DIR, f"caltex-tgp-{stamp}.pdf")
+    shutil.copyfile(pdf_path, dest)
+    if text is not None:
+        with open(dest[:-4] + ".txt", "w") as f:
+            f.write(text)
+    print(f"Saved failing PDF to {dest}", file=sys.stderr)
+
+
 def main() -> None:
     pdf_path = download_pdf(PDF_URL)
+    text = None
     try:
         text = extract_text(pdf_path)
         rows, current_date = parse_pricing(text)
@@ -206,6 +221,9 @@ def main() -> None:
         write_current(rows, current_date)
         write_history(rows)
         write_json()
+    except Exception:
+        save_failed_pdf(pdf_path, text)
+        raise
     finally:
         os.unlink(pdf_path)
 

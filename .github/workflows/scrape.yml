@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ !github.event.repository.is_template }}
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Create scrape.sh if it doesn't exist
       run: |
         if [ ! -f "scrape.sh" ]; then
@@ -34,7 +34,7 @@ jobs:
       env:
         REPO_DESC: ${{ github.event.repository.description }}
     - name: Set up Python 3.13
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: "3.13"
         cache: "pip"
@@ -44,6 +44,14 @@ jobs:
     - name: Run the scraper
       run: |
         ./scrape.sh
+    - name: Upload failing PDF
+      if: failure()
+      uses: actions/upload-artifact@v6
+      with:
+        name: failed-pdf-${{ github.run_id }}
+        path: failed-pdf/
+        if-no-files-found: ignore
+        retention-days: 30
     - name: Commit and push
       run: |-
         git config user.name "Automated"
